@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Ask Scaleflow a Question</title>
+<style>
+  :root{
+    --bg:#f5f0df;
+    --ink:#171717;
+    --panel:#fffaf0;
+    --accent:#6b59d3;
+    --accent2:#ffcc4d;
+    --shadow:#171717;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; min-height:100vh; display:grid; place-items:center;
+    background:
+      linear-gradient(90deg,rgba(0,0,0,.035) 1px,transparent 1px),
+      linear-gradient(rgba(0,0,0,.035) 1px,transparent 1px), var(--bg);
+    background-size:16px 16px;
+    color:var(--ink);
+    font-family:"Courier New",monospace;
+    image-rendering:pixelated;
+  }
+  .wrap{width:min(880px,92vw); text-align:center}
+  .badge{
+    display:inline-block; padding:7px 11px; margin-bottom:18px;
+    border:3px solid var(--ink); background:var(--accent2);
+    box-shadow:4px 4px 0 var(--shadow); font-weight:900; font-size:12px;
+  }
+  h1{
+    margin:0 0 28px; text-transform:uppercase; letter-spacing:2px;
+    font-size:clamp(27px,5vw,54px); line-height:1.05;
+    text-shadow:4px 4px 0 #d9d0b8;
+  }
+  .assistant{
+    display:flex; justify-content:center; align-items:center; gap:18px;
+    margin:0 auto 28px; max-width:650px;
+  }
+  .face{
+    width:96px; height:96px; flex:0 0 96px; position:relative;
+    border:5px solid var(--ink); background:var(--accent2);
+    box-shadow:7px 7px 0 var(--shadow);
+  }
+  .eye{position:absolute; top:27px; width:12px; height:12px; background:var(--ink)}
+  .eye.l{left:20px}.eye.r{right:20px}
+  .mouth{
+    position:absolute; left:25px; bottom:21px; width:38px; height:12px;
+    border-left:8px solid var(--ink); border-bottom:8px solid var(--ink); border-right:8px solid var(--ink);
+  }
+  .bubble{
+    text-align:left; background:var(--panel); border:4px solid var(--ink);
+    padding:16px 18px; box-shadow:6px 6px 0 var(--shadow);
+    font-weight:bold; line-height:1.45;
+  }
+  .box{
+    background:var(--panel); border:4px solid var(--ink);
+    padding:22px; box-shadow:9px 9px 0 var(--shadow);
+  }
+  .hint{font-size:13px; margin:0 0 12px; opacity:.72}
+  .row{display:flex; gap:10px}
+  input{
+    min-width:0; flex:1; border:4px solid var(--ink); padding:15px;
+    font:700 16px "Courier New",monospace; background:white; outline:none;
+  }
+  input:focus{box-shadow:inset 0 0 0 3px #d8d0ff}
+  button{
+    border:4px solid var(--ink); padding:13px 20px; background:var(--accent);
+    color:white; font:900 15px "Courier New",monospace; cursor:pointer;
+    box-shadow:4px 4px 0 var(--shadow); text-transform:uppercase;
+  }
+  button:hover{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--shadow)}
+  button:active{transform:translate(4px,4px);box-shadow:none}
+  #answer{
+    display:none; margin-top:22px; padding:19px; border:4px dashed var(--ink);
+    background:#e8e2ff; text-align:left; font-weight:900; line-height:1.5;
+  }
+  #answer.show{display:block; animation:pop .18s steps(2,end)}
+  .label{font-size:11px; opacity:.6; margin-bottom:8px}
+  .cursor{display:inline-block;width:10px;height:17px;background:var(--ink);vertical-align:-3px;animation:blink .8s steps(1) infinite}
+  footer{margin-top:23px;font-size:11px;opacity:.55}
+  @keyframes blink{50%{opacity:0}}
+  @keyframes pop{from{transform:scale(.97)}to{transform:scale(1)}}
+  @media(max-width:600px){
+    .assistant{align-items:flex-start}.face{width:76px;height:76px;flex-basis:76px}
+    .eye{top:20px}.eye.l{left:14px}.eye.r{right:14px}.mouth{left:18px;bottom:15px}
+    .row{flex-direction:column} button{width:100%}
+  }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="badge">SCALEFLOW // MANAGEMENT AI v1.0</div>
+  <h1>Ask Scaleflow a question</h1>
+
+  <section class="assistant">
+    <div class="face" aria-label="Pixelated smiling face">
+      <span class="eye l"></span><span class="eye r"></span><span class="mouth"></span>
+    </div>
+    <div class="bubble">If you have any questions, just ask me!<span class="cursor"></span></div>
+  </section>
+
+  <section class="box">
+    <p class="hint">Ask anything. A blocker. An uncertainty. A question nobody wants to answer.</p>
+    <div class="row">
+      <input id="question" autocomplete="off" placeholder="e.g. What should we measure?" />
+      <button id="ask">ASK →</button>
+    </div>
+    <div id="answer" aria-live="polite">
+      <div class="label">SCALEFLOW MANAGEMENT RESPONSE:</div>
+      <div id="answerText"></div>
+    </div>
+  </section>
+  <footer>Powered by alignment, metrics & strategic uncertainty.</footer>
+</main>
+
+<script>
+const responses = [
+  'I think we’re asking the wrong question here. Before we answer it, we should probably spend some time understanding what the right question would have been.',
+  'We need metrics that actually help us understand what the metrics are telling us, otherwise we’re just measuring numbers without knowing how measurable they really are.',
+  'Before we discuss the solution, we need to understand what problem we’re trying to solve, and preferably confirm that the problem is still a problem.',
+  'I think we need to look at this from a slightly different perspective. The current perspective is giving us answers, and I’m not convinced we’re ready for those yet.',
+  'The numbers are important, but we shouldn’t focus too much on the numbers. What matters is the story behind the numbers and whether we like that story.',
+  'We need to make sure we’re measuring the right things, not just the things we can measure. Can someone prepare some metrics to help us decide which metrics we should measure?',
+  'I don’t think we have enough data yet to understand whether we need more data. Let’s collect some additional data specifically to validate that uncertainty.',
+  'The main question is: what does success actually look like? Because until we define success, it’s difficult to explain why we haven’t achieved it yet.',
+  'We need to take this to the next level, whatever that level turns out to be. I suggest we first align on what level we’re currently on.',
+  'I think there’s an opportunity here, but first we need to understand what the opportunity is, who owns it, and whether it needs its own Teams channel.',
+  'We shouldn’t overcomplicate this, but we also shouldn’t oversimplify it. We need exactly the right amount of complication, which we can determine in a workshop.',
+  'Let’s make sure we’re all aligned on what alignment means in this context. I’m seeing several different interpretations of being completely aligned.',
+  'Maybe instead of looking for answers, we should first identify the right questions. Once we have those, we can decide whether answering them is actually necessary.',
+  'We need a more strategic approach to how we approach the strategy. Right now the strategy feels tactical in the way it approaches being strategic.',
+  'I think the real challenge here is understanding what the actual challenge is. Once we know that, we can create a separate challenge for solving it.',
+  'We need to zoom out before we can zoom in. But before we zoom out, I’d like to understand why we zoomed in in the first place.',
+  'Let’s not make a decision until we understand what decision we’re actually making. A premature decision could accidentally result in progress.',
+  'What I’m missing here is the story behind the numbers behind the story. The dashboard tells me what happened, but not how I’m supposed to feel about it.',
+  'I think we need a dashboard that gives us a high-level overview, but with enough detail to understand the details without becoming too detailed.',
+  'Let’s take this offline, align internally, circle back, and then decide whether we need another meeting to prepare for the meeting where we make the decision.',
+  'I think we need to understand whether understanding this would actually help us understand it. Otherwise we could spend valuable time reaching unnecessary clarity.',
+  'Before we move forward, we should determine whether forward is still the right direction. There may be significant strategic value in moving sideways for a while.',
+  'The data is clearly telling us something. The challenge is that we don’t yet know what it knows, why it knows it, or whether it has aligned with the roadmap.',
+  'Let’s create a task force to investigate whether we need a task force. I’d suggest a small steering committee to define the task force’s initial scope.',
+  'We need to establish a baseline before we can understand why we don’t have a baseline. Please add a baseline-definition milestone to the baseline initiative.',
+  'I’m not saying we should change direction. I’m saying we should redefine where we thought we were going so the current direction becomes correct again.',
+  'This feels like a quick win, but we need three workshops, a discovery session, and stakeholder validation to confirm exactly how quick the win is.',
+  'Let’s put a meeting in the calendar to discuss whether this needs a meeting. If we conclude that it doesn’t, we can use the remaining time to discuss why.',
+  'We need to be more proactive about understanding why we’re constantly reacting. Can we schedule a retrospective to proactively analyze our reactive behavior?',
+  'I think the problem is that we’re focusing too much on the problem. We should spend more time on the broader context in which the problem continues to exist.',
+  'Can we add this to the dashboard so we don’t have to understand it manually? Ideally it should be represented by a color that immediately creates confidence.',
+  'Let’s avoid making assumptions until we’ve agreed on which assumptions we’re comfortable making. Unapproved assumptions could create uncontrolled understanding.',
+  'We need one source of truth, but ideally several versions of it for different stakeholders. They should all be authoritative while remaining slightly different.',
+  'The KPI looks good, but I’m concerned that it might be measuring exactly what we asked it to measure. We should validate whether that was actually our intention.',
+  'We should automate this process, but first let’s introduce an approval process for the automation. We need to make sure efficiency remains properly governed.',
+  'I’d like to challenge the assumption that we need to know what we’re doing before we start doing it. Discovery is sometimes more valuable after implementation.',
+  'Let’s not get lost in the details. Can someone prepare a 47-slide deck containing all the details so we can review them at a high level?',
+  'The priority right now is to prioritize our priorities before they become less prioritized. Please avoid working on them until the prioritization is complete.',
+  'I think we need a helicopter view, preferably from a helicopter that has never seen this project. Fresh altitude could reveal strategic opportunities we’re missing.',
+  'We’re very close to being almost ready to start preparing. I don’t want us to rush the final preparation for the preparation phase.',
+  'Can we quantify the qualitative feeling that the quantitative numbers feel wrong? I’d like to see that represented as a percentage by next week.',
+  'This is not a blocker. It’s more of a strategically stationary forward-movement opportunity that temporarily prevents us from moving forward.',
+  'We need to increase transparency, so please add another management layer between the teams. That should give us a clearer view of what everyone is doing.',
+  'Let’s simplify the process by adding a mandatory form explaining why the process is too complicated. We can review those forms quarterly for simplification opportunities.',
+  'The customer may know what they want, but have we validated whether they should want it? We need to protect them from prematurely understanding their own requirements.',
+  'I’m seeing a lot of solutions here, but not enough problems to justify them. Can we identify two or three additional problems so the solution has a stronger business case?',
+  'We should probably benchmark ourselves against companies that have completely different problems. That will give us an objective perspective on why our situation is unique.',
+  'Let’s circle back once the circle has a clearer strategic direction. At the moment we’re circling effectively, but I’m not convinced we’re circling toward the right outcome.',
+  'I don’t want to overengineer this. Let’s build a lightweight governance framework, approval workflow, steering committee, and reporting dashboard to prevent overengineering.',
+  'The important thing is that we remain agile enough to postpone the decision until it becomes urgent. Urgency will give us the clarity we currently lack.'
+];
+
+let last = -1;
+function answer(){
+  const q = document.getElementById("question");
+  if(!q.value.trim()){
+    q.focus();
+    q.placeholder = "You need to ask something first...";
+    return;
+  }
+  let i;
+  do { i = Math.floor(Math.random() * responses.length); } while(i === last && responses.length > 1);
+  last = i;
+  document.getElementById("answerText").textContent = responses[i];
+  const a = document.getElementById("answer");
+  a.classList.remove("show");
+  void a.offsetWidth;
+  a.classList.add("show");
+}
+document.getElementById("ask").addEventListener("click", answer);
+document.getElementById("question").addEventListener("keydown", e => {
+  if(e.key === "Enter") answer();
+});
+</script>
+</body>
+</html>
